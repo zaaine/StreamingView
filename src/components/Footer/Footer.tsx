@@ -9,26 +9,26 @@ import './Footer.css';
 
 
 interface FooterProps {
- 
+
 }
 
 
-const Footer : FC<FooterProps> = () =>{
+const Footer: FC<FooterProps> = () => {
 
 
 
-    useEffect(() => {
-      window.scrollTo(0,0)
-      const runLocalData = async () => {
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    const runLocalData = async () => {
 
-      }
-      runLocalData()
-    })
+    }
+    runLocalData()
+  })
 
   return (
-      <div className="Footer">
-          Footer Component
-      </div>
+    <div className="Footer">
+      Footer Component
+    </div>
   );
 }
 

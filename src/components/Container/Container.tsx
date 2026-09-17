@@ -7,6 +7,9 @@
 import React, { FC, useEffect, useState } from 'react';
 import './Container.css';
 import VideoFormModal from '../VideoFormModal/VideoFormModal';
+import { title } from 'process';
+import { link } from 'fs';
+import { create } from 'domain';
 
 
 interface ContainerProps {
@@ -15,6 +18,17 @@ interface ContainerProps {
 
 
 const Container: FC<ContainerProps> = () => {
+
+ /*  {
+    title,
+    describe,
+    poster,
+    link,
+    author,
+    createdAt,
+    updatedAt,
+    isAvailable, 
+  } */
 
   const [displayModal, setDisplayModal] = useState<boolean>(true)
   useEffect(() => {

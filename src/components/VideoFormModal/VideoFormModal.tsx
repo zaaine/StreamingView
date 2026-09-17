@@ -10,11 +10,11 @@ import { Button, Modal } from 'react-bootstrap';
 
 
 interface VideoFormModalProps {
-  hideModal: ()=>void
+  hideModal: () => void
 }
 
 
-const VideoFormModal: FC<VideoFormModalProps> = ({hideModal}) => {
+const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
 
 
 
@@ -38,42 +38,44 @@ const VideoFormModal: FC<VideoFormModalProps> = ({hideModal}) => {
         </Modal.Header>
         <Modal.Body>
           <form action="">
-              <div className="form-group">
-                <label htmlFor="title">Title : </label>
-                <input type="text" name="title" className="form-control" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="description">Description : </label>
-                <textarea name="description" id="description" className="form-control" ></textarea>
-              </div>
-              <div className="form-group">
-                <label htmlFor="description">Image (poster) :</label>
-                <input type="file" name="poster" className="form-control" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="description">Video :</label>
-                <input type="file" name="video" className="form-control" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="categories">Categories :</label>
-                <select name="categories" id="categories" className="form-control" >
-                  <option value="">Select video categories</option>
-                  <option value="Politique">Politique</option>
-                  <option value="Education">Education</option>
-                  <option value="Culture">Culture</option>
-                  <option value="Formation">Formation</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="description">Is Available :</label>
-                <input type="checkbox" name="isAvailable"  />
-              </div>
+            <div className="form-group">
+              <label htmlFor="title">Title : </label>
+              <input type="text" name="title" className="form-control" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="description">Description : </label>
+              <textarea name="description" id="description" className="form-control" ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="description">Image (poster) :</label>
+              <input type="file" name="poster" className="form-control" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="description">Video :</label>
+              <input type="file" name="video" className="form-control" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="categories">Categories :</label>
+              <select name="categories" id="categories" className="form-control" >
+                <option value="">Select video categories</option>
+                <option value="Politique">Politique</option>
+                <option value="Education">Education</option>
+                <option value="Culture">Culture</option>
+                <option value="Formation">Formation</option>
+                <option value="Science-Fiction">Science-Fiction</option>
+                <option value="Action">Action</option>
+              </select>
+            </div>
+            <div className="form-check form-switch">
+              <input className="form-check-input" type="checkbox" role="switch" id="switchCheckChecked" defaultChecked />
+              <label className="form-check-label" htmlFor="switchCheckChecked">Is Available</label>
+            </div>
 
           </form>
         </Modal.Body>
         <Modal.Footer>
-        <Button variant='primary' onClick={hideModal}>Cancel</Button>
-        <Button variant='success'>Save Video</Button>
+          <Button variant='primary' onClick={hideModal}>Cancel</Button>
+          <Button variant='success'>Save Video</Button>
         </Modal.Footer>
       </Modal>
     </div>
