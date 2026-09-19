@@ -8,7 +8,8 @@ import React, { FC, useEffect, useState } from 'react';
 import './VideoFormModal.css';
 import { Button, Modal } from 'react-bootstrap';
 import { Video } from '../../models/Video';
-import { convertFileToLink } from '../../helpers/filehelpers';
+import { convertFileToBlob, convertFileToLink } from '../../helpers/filehelpers';
+import { db } from '../../api/database';
 
 
 
@@ -108,12 +109,19 @@ const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
       isAvailable: formData.isAvailable,
       created_at: new Date().toISOString(),
     }
-
-    const existingVideos = JSON.parse(localStorage.getItem('videos') || '[]')
-    existingVideos.push(newVideo)
-    localStorage.setItem('videos', JSON.stringify(existingVideos))
-
-    hideModal()
+    //Sauvegarde dans le localStorage
+    /* let existingVideos = JSON.parse(localStorage.getItem('videos') || '[]')
+      existingVideos = await convertFileToBlob(newVideo.poster as File)
+     existingVideos.push(newVideo)
+     localStorage.setItem('videos', JSON.stringify(existingVideos))
+     hideModal() 
+    */
+    try {
+      await db.addData('videos', newVideo)
+      hideModal()
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la vidéo', error)
+    }
   }
 
   return (

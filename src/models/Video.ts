@@ -3,8 +3,8 @@ import { category } from "./Category";
 export interface Video {
   title: string;
   description: string;
-  poster: File | null | string;
-  link: File | null | string;
+  poster: File | Blob | null | string;
+  link: File | Blob | null | string;
   author?: string;
   category: string;
   isAvailable: boolean;
