@@ -1,6 +1,7 @@
-import { category } from "./Category";
+import { Category } from "./Category";
 
 export interface Video {
+  _id?: string;
   title: string;
   description: string;
   poster: File | Blob | null | string;
@@ -11,4 +12,3 @@ export interface Video {
   created_at?: Date;
   updated_at?: Date;
 }
-

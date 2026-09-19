@@ -9,8 +9,8 @@ import './VideoFormModal.css';
 import { Button, Modal } from 'react-bootstrap';
 import { Video } from '../../models/Video';
 import { convertFileToBlob, convertFileToLink } from '../../helpers/filehelpers';
-import { db } from '../../api/database';
-
+import { addVideo } from '../../api/api-video';
+import Loading from '../Loading/Loading';
 
 
 interface VideoFormModalProps {
@@ -19,6 +19,11 @@ interface VideoFormModalProps {
 
 
 const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
+
+  const [posterPreview, setPosterPreview] = useState<string>("")
+  const [videoPreview, setVideoPreview] = useState<string>("")
+  const [formSubmitError, setFormSubmitError] = useState<string>("")
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
 
   const [formData, setFormData] = useState<Video>({
     title: '',
@@ -30,8 +35,7 @@ const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
   })
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [posterPreview, setPosterPreview] = useState<string | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -39,26 +43,41 @@ const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
 
     }
     runLocalData()
-  }, [])
+  })
 
-  const handleInputChange = (event: any) => {
+  const handleInputChange = async (event: any) => {
     const { name, value, type, files, checked } = event.target
 
-    const newValue: any = { ...formData }
+    const newValue: any = formData
+
     if (type === "checkbox") {
       newValue[name] = checked
     } else if (type === "file") {
-      newValue[name] = files[0]
-      if (name === 'poster' && files[0]) {
-        convertFileToLink(files[0]).then((link) => setPosterPreview(link))
+      const file = files[0]
+      const link = await convertFileToLink(file)
+      if (name === "poster") {
+        if (!file.type.startsWith('image/')) {
+          return;
+        }
+        setPosterPreview(link)
       }
-      if (name === 'link' && files[0]) {
-        convertFileToLink(files[0]).then((link) => setVideoPreview(link))
+      if (name === "link") {
+        if (!file.type.startsWith('video/')) {
+          return;
+        }
+        setVideoPreview(link)
       }
+      newValue[name] = file
     } else {
       newValue[name] = value
     }
+    console.log(newValue);
 
+    const errors = formErrors
+    delete errors[name]
+    console.log(errors);
+
+    setFormErrors({ ...errors })
     setFormData(newValue)
 
   }
@@ -96,32 +115,34 @@ const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
       return
     }
 
-    const posterLink = await convertFileToLink(formData.poster as File)
-    const videoLink = await convertFileToLink(formData.link as File)
-
-    const newVideo = {
-      id: Date.now(),
-      title: formData.title,
-      description: formData.description,
-      poster: posterLink,
-      link: videoLink,
-      category: formData.category,
-      isAvailable: formData.isAvailable,
-      created_at: new Date().toISOString(),
-    }
-    //Sauvegarde dans le localStorage
-    /* let existingVideos = JSON.parse(localStorage.getItem('videos') || '[]')
-      existingVideos = await convertFileToBlob(newVideo.poster as File)
-     existingVideos.push(newVideo)
-     localStorage.setItem('videos', JSON.stringify(existingVideos))
-     hideModal() 
-    */
     try {
-      await db.addData('videos', newVideo)
-      hideModal()
+      setIsSubmitted(true)
+      const video: Video = formData
+      video.created_at = new Date()
+
+      video.poster = await convertFileToBlob(video.poster as File)
+      video.link = await convertFileToBlob(video.link as File)
+
+      const result = await addVideo(video)
+
+      if (result.isSuccess) {
+        setFormData({
+          title: '',
+          description: '',
+          poster: null,
+          link: null,
+          category: '',
+          isAvailable: true
+        })
+        hideModal()
+      }
+
+
     } catch (error) {
-      console.error('Erreur lors de l\'enregistrement de la vidéo', error)
+      setFormSubmitError('Error, please try again later !')
+
     }
+    setIsSubmitted(false)
   }
 
   return (
@@ -135,95 +156,101 @@ const VideoFormModal: FC<VideoFormModalProps> = ({ hideModal }) => {
 
         </Modal.Header>
         <Modal.Body>
-          <form action="">
-            <div className="form-group">
-              <label htmlFor="title">Title : </label>
-              <input
-                id="title"
-                defaultValue={formData.title}
-                type="text" name="title"
-                className={`form-control ${formErrors.title ? 'is-invalid' : ''}`}
-                onChange={handleInputChange}
-              />
-              {formErrors.title && <div className='invalid-feedback'>{formErrors.title}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="description">Description : </label>
-              <textarea
-                name="description"
-                id="description"
-                defaultValue={formData.description}
-                className={`form-control ${formErrors.description ? 'is-invalid' : ''}`}
-                onChange={handleInputChange}
-              />
-              {formErrors.description && <div className='invalid-feedback'>{formErrors.description}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="poster">Image (poster) :</label>
-              <input
-                id="poster"
-                type="file"
-                name="poster"
-                className={`form-control ${formErrors.poster ? 'is-invalid' : ''}`}
-                onChange={handleInputChange}
-              />
-              {posterPreview && (
-                <div className='preview-image card'>
-                  <img className='img-fluid' width={'100%'} src={posterPreview} alt="Aperçu du poster" />
+          {
+            isSubmitted ?
+              <Loading />
+              :
+              <form action="">
+                {formSubmitError && <div className="text-danger">{formSubmitError}</div>}
+                <div className="form-group">
+                  <label htmlFor="title">Title : </label>
+                  <input
+                    defaultValue={formData.title}
+                    type="text" name="title"
+                    className={`form-control ${formErrors.title ? 'is-invalid' : ''}`}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.title && <div className='invalid-feedback'>{formErrors.title}</div>}
                 </div>
-              )}
-              {formErrors.poster && <div className='invalid-feedback'>{formErrors.poster}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="link">Video :</label>
-              <input
-                id="link"
-                type="file"
-                name="link"
-                className={`form-control ${formErrors.link ? 'is-invalid' : ''}`}
-                onChange={handleInputChange}
-              />
-              {videoPreview && (
-                <div className='video-preview'>
-                  <video controls width={'100%'} src={videoPreview}> </video>
+                <div className="form-group">
+                  <label htmlFor="description">Description : </label>
+                  <textarea
+                    name="description"
+                    id="description"
+                    defaultValue={formData.description}
+                    className={`form-control ${formErrors.description ? 'is-invalid' : ''}`}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.description && <div className='invalid-feedback'>{formErrors.description}</div>}
                 </div>
-              )}
-              {formErrors.link && <div className='invalid-feedback'>{formErrors.link}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="category">Category :</label>
-              <select defaultValue={formData.category}
-                onChange={handleInputChange}
-                name="category" id="category"
-                className={`form-control ${formErrors.category ? 'is-invalid' : ''}`} >
-                <option value="">Select video categories</option>
-                <option value="Politique">Politique</option>
-                <option value="Education">Education</option>
-                <option value="Culture">Culture</option>
-                <option value="Formation">Formation</option>
-              </select>
-              {formErrors.category && <div className='invalid-feedback'>{formErrors.category}</div>}
-            </div>
+                <div className="form-group">
+                  <label htmlFor="description">Image (poster) :</label>
+                  <input
+                    type="file"
+                    name="poster"
+                    accept="image/*"
+                    className={`form-control ${formErrors.poster ? 'is-invalid' : ''}`}
+                    onChange={handleInputChange}
+                  />
+                  {
+                    posterPreview && <div className="preview-image card my-1">
+                      <img className='img-fluid' width={'100%'} src={posterPreview} />
+                    </div>
+                  }
 
-            <div className="form-check form-switch">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="isAvailable"
-                name="isAvailable"
-                onChange={handleInputChange}
-                defaultChecked={formData.isAvailable}
-              />
-              <label htmlFor="isAvailable">Is Available </label>
-            </div>
+                  {formErrors.poster && <div className='invalid-feedback'>{formErrors.poster}</div>}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="description">Video :</label>
+                  <input
+                    type="file"
+                    name="link"
+                    accept="video/*"
+                    className={`form-control ${formErrors.link ? 'is-invalid' : ''}`}
+                    onChange={handleInputChange}
+                  />
+                  {
+                    videoPreview && <div className="video-preview  card my-1">
+                      <video controls src={videoPreview} width={'100%'}></video>
+                    </div>
+                  }
+                  {formErrors.link && <div className='invalid-feedback'>{formErrors.link}</div>}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="category">Category :</label>
+                  <select defaultValue={formData.category}
+                    onChange={handleInputChange}
+                    name="category" id="category"
+                    className={`form-control ${formErrors.category ? 'is-invalid' : ''}`} >
+                    <option value="">Select video categories</option>
+                    <option value="Politique">Politique</option>
+                    <option value="Education">Education</option>
+                    <option value="Culture">Culture</option>
+                    <option value="Formation">Formation</option>
+                  </select>
+                  {formErrors.category && <div className='invalid-feedback'>{formErrors.category}</div>}
+                </div>
+
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="isAvailable"
+                    name="isAvailable"
+                    onChange={handleInputChange}
+                    defaultChecked={formData.isAvailable}
+                  />
+                  <label htmlFor="isAvailable">Is Available </label>
+                </div>
 
 
-          </form>
+              </form>
+          }
+
         </Modal.Body>
         <Modal.Footer>
-          <Button type="button" variant='primary' onClick={hideModal}>Cancel</Button>
-          <Button type="button" variant='success' onClick={handleSubmit}>Save Video</Button>
+          <Button variant='primary' onClick={hideModal}>Cancel</Button>
+          <Button variant='success' onClick={handleSubmit}>Save Video</Button>
         </Modal.Footer>
       </Modal>
     </div>

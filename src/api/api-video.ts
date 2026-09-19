@@ -1,69 +1,78 @@
 import { Video } from "../models/Video";
 import { db } from "./database";
 
-
-
-export const addVideo = async (video: Video)=> {
+export const addVideo = async (video: Video) => {
   try {
-    await db.addData('videos', video);
+    await db.addData("videos", video);
+    return {
+      isSuccess: true,
+      message: "Video added successfuly !",
+    };
   } catch (error) {
-    console.error('Error adding video:', error);
+    console.log({ error });
     return {
-      inSucess: false,
-      message: 'Error adding video',  
-    }
-  } 
-};
-
-
-export const getVideo = async (_id:string| number) => {
-  try {
-   const video =  await db.getData("videos", _id);
-    return {
-      inSucess: true,
-      result: video,
-      message: 'Video retrieved successfully',
-    }
-  } catch (error) {
-    console.error('Error retrieving video:', error);
-    return {
-      inSucess: false,
-      message: 'Error retrieving video',  
-    }
+      isSuccess: false,
+      error,
+    };
   }
-    }
-
+};
+export const updateVideo = async (video: Video) => {
+  try {
+    await db.updateData("videos", video);
+    return {
+      isSuccess: true,
+      message: "Video updated successfuly !",
+    };
+  } catch (error) {
+    console.log({ error });
+    return {
+      isSuccess: false,
+      error,
+    };
+  }
+};
+export const getVideo = async (_id: number) => {
+  try {
+    const video = await db.getData("videos", _id);
+    return {
+      isSuccess: true,
+      result: video
+    };
+  } catch (error) {
+    console.log({ error });
+    return {
+      isSuccess: false,
+      error,
+    };
+  }
+};
 export const getAllVideo = async () => {
   try {
-   const videos =  await db.getAllData("videos");
+    const videos = await db.getAllData("videos");
     return {
-      inSucess: true,
-      result: videos,
-      message: 'Videos retrieved successfully',
-    }
+      isSuccess: true,
+      results: videos
+    };
   } catch (error) {
-    console.error('Error retrieving videos:', error);
+    console.log({ error });
     return {
-      inSucess: false,
-      message: 'Error retrieving videos',  
-    }
+      isSuccess: false,
+      error,
+    };
   }
-    }    
-
-
- export const deleteVideo = async (_id: number) => {
+};
+export const deleteVideo = async (_id: number) => {
   try {
-   const video =  await db.deleteData("videos", _id);
+    await db.deleteData("videos", _id);
     return {
-      inSucess: true,
-      result: video,
-      message: 'Video deleted successfully',
-    }
+      isSuccess: true,
+      message: "Video deleted successfuly !",
+    };
   } catch (error) {
-    console.error('Error deleting video:', error);
+    console.log({ error });
     return {
-      inSucess: false,
-      message: 'Error deleting video',  
-    }
+      isSuccess: false,
+      error,
+    };
   }
-    }   
+};
